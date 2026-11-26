@@ -37,6 +37,8 @@ struct SpriteTimerView: View {
     var flipped = false
     /// 값이 있으면 그 초만큼 거꾸로 세는 타이머 (한 번만 재생되는 이펙트용)
     var countdown: TimeInterval? = nil
+    /// 자르기 방식 (진단용): true = 원래 너비로 그린 뒤 오른쪽 맞춤, false = 칸 너비 안에서 오른쪽 맞춤
+    var fixedWidth = true
 
     private var range: ClosedRange<Date> {
         start...start.addingTimeInterval(countdown ?? 60 * 60 * 24)
@@ -47,7 +49,7 @@ struct SpriteTimerView: View {
             switch mode {
             case .color:
                 digit(font: anim.colorFont, color: .white)
-            case .layered:
+            case .layered, .debug:
                 ForEach(anim.layers, id: \.self) { layer in
                     digit(font: layer.font, color: Color(hex: layer.hex))
                 }
@@ -66,7 +68,7 @@ struct SpriteTimerView: View {
             .foregroundStyle(color)
             .multilineTextAlignment(.trailing)
             .lineLimit(1)
-            .fixedSize()
+            .fixedSize(horizontal: fixedWidth, vertical: true)
             .frame(width: size, height: size, alignment: .trailing)
     }
 }
@@ -98,6 +100,62 @@ struct MonsterStack: View {
     }
 }
 
+/// 진단 화면: 그림/글꼴/자르기가 각각 되는지 한 번에 확인
+struct DiagnosticsView: View {
+    let start: Date
+    private let a = SpriteCatalog.playerBattle
+    private var range: ClosedRange<Date> { start...start.addingTimeInterval(86400) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 6) {
+                label("그림")
+                PixelImage(name: a.idleFrame).frame(width: 32, height: 32)
+                Text(fontStatus).font(.system(size: 10)).lineLimit(2)
+                Text(timerInterval: range, countsDown: false, showsHours: false)
+                    .font(.system(size: 12).monospacedDigit())
+                    .frame(width: 40)
+            }
+            HStack(spacing: 6) {
+                label("컬러")
+                Text(timerInterval: range, countsDown: false, showsHours: false)
+                    .font(.custom(a.colorFont, fixedSize: 32))
+                    .frame(height: 32)
+            }
+            HStack(spacing: 6) {
+                label("겹침")
+                ZStack(alignment: .leading) {
+                    ForEach(a.layers, id: \.self) { l in
+                        Text(timerInterval: range, countsDown: false, showsHours: false)
+                            .font(.custom(l.font, fixedSize: 32))
+                            .foregroundStyle(Color(hex: l.hex))
+                    }
+                }
+                .frame(height: 32)
+            }
+            HStack(spacing: 6) {
+                label("자름")
+                SpriteTimerView(anim: a, start: start, size: 32, mode: .color)
+                SpriteTimerView(anim: a, start: start, size: 32, mode: .layered)
+                label("B")
+                SpriteTimerView(anim: a, start: start, size: 32, mode: .color, fixedWidth: false)
+                SpriteTimerView(anim: a, start: start, size: 32, mode: .layered, fixedWidth: false)
+            }
+        }
+        .foregroundStyle(.white)
+    }
+
+    private func label(_ t: String) -> some View {
+        Text(t).font(.system(size: 10, weight: .bold)).frame(width: 26, alignment: .leading)
+    }
+
+    private var fontStatus: String {
+        let c = UIFont(name: a.colorFont, size: 10) != nil
+        let l = UIFont(name: a.layers.first?.font ?? "", size: 10) != nil
+        return "컬러글꼴 \(c ? "있음" : "없음")\n겹침글꼴 \(l ? "있음" : "없음")"
+    }
+}
+
 /// 잠금화면/앱 미리보기 공용 전투 화면
 struct BattleSceneView: View {
     let state: BattleAttributes.ContentState
@@ -105,6 +163,14 @@ struct BattleSceneView: View {
     var spriteSize: CGFloat = 64
 
     var body: some View {
+        if state.renderMode == .debug {
+            DiagnosticsView(start: state.animStart)
+        } else {
+            scene
+        }
+    }
+
+    private var scene: some View {
         VStack(spacing: 8) {
             HStack {
                 Text("처치 \(state.kills)").font(.headline.monospacedDigit())

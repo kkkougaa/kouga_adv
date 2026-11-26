@@ -5,12 +5,14 @@ enum SpriteRenderMode: String, Codable, Hashable, CaseIterable {
     case color     // 컬러 글꼴(sbix) 한 겹
     case layered   // 한 색 글꼴 여러 겹
     case still     // 그림 파일 (움직이지 않음, 비교용)
+    case debug     // 진단: 잠금화면에서 무엇이 되고 안 되는지 한 화면에 보여줌
 
     var label: String {
         switch self {
         case .color: "컬러 글꼴"
         case .layered: "겹친 글꼴"
         case .still: "정지 그림"
+        case .debug: "진단"
         }
     }
 }
