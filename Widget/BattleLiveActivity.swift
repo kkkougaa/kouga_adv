@@ -16,11 +16,10 @@ struct BattleLiveActivity: Widget {
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     SpriteTimerView(anim: SpriteCatalog.playerBattle, start: s.animStart,
-                                    size: 52, mode: s.renderMode)
+                                    size: 64, mode: s.renderMode)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    SpriteTimerView(anim: s.monster.anim, start: s.animStart,
-                                    size: 52, mode: s.renderMode)
+                    MonsterStack(state: s, isStale: context.isStale, size: 64)
                 }
                 DynamicIslandExpandedRegion(.center) {
                     VStack(spacing: 4) {
@@ -44,12 +43,12 @@ struct BattleLiveActivity: Widget {
                 }
             } compactLeading: {
                 SpriteTimerView(anim: SpriteCatalog.playerBattle, start: s.animStart,
-                                size: 22, mode: s.renderMode)
+                                size: 32, mode: s.renderMode)
             } compactTrailing: {
                 Text("\(s.kills)").font(.caption.bold().monospacedDigit())
             } minimal: {
                 SpriteTimerView(anim: SpriteCatalog.playerBattle, start: s.animStart,
-                                size: 20, mode: s.renderMode)
+                                size: 32, mode: s.renderMode)
             }
             .keylineTint(Color(hex: 0x2ec4b6))
         }

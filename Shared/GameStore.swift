@@ -5,6 +5,7 @@ struct GameState: Codable, Hashable {
     var stats = HeroStats()
     var segment: BattleSegment?
     var renderMode: SpriteRenderMode = .color
+    var lastSkillAt: Date?
 }
 
 /// 앱 그룹 저장소. 페더 인증서가 앱 그룹을 지원하지 않으면 일반 저장소로 동작한다.

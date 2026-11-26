@@ -26,13 +26,15 @@ struct BattleAttributes: ActivityAttributes {
         /// 애니메이션 기준 시각 (구간 시작). 이 시각부터 흐른 초의 일의 자리가 프레임 번호.
         var animStart: Date
         var renderMode: SpriteRenderMode
+        /// 스킬을 쓴 시각 (3초 동안 폭발 이펙트)
+        var skillAt: Date?
     }
 }
 
 extension BattleAttributes.ContentState {
-    init(status st: BattleStatus, segment: BattleSegment, mode: SpriteRenderMode) {
+    init(status st: BattleStatus, segment: BattleSegment, mode: SpriteRenderMode, skillAt: Date?) {
         self.init(monster: st.kind, monsterIndex: st.monsterIndex, kills: st.kills, gold: st.gold,
                   hpBarStart: st.hpBarStart, deathDate: st.deathDate,
-                  animStart: segment.start, renderMode: mode)
+                  animStart: segment.start, renderMode: mode, skillAt: skillAt)
     }
 }

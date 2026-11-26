@@ -36,7 +36,8 @@
 ............T......TT...........
 
 @frame bob base=idle dy=-1
+@frame knock base=idle dx=1
 @frame hit base=idle flash=A
 
-# 짝수 초 = 맞아서 하얗게 번쩍, 홀수 초 = 통통
-@digits battle hit idle hit bob hit idle hit bob hit idle
+# 짝수 초 = 맞아서 밀려남, 0초(강타) = 하얗게 번쩍, 홀수 초 = 통통
+@digits battle hit idle knock bob knock idle knock bob knock idle

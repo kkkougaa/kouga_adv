@@ -35,6 +35,12 @@ struct SpriteTimerView: View {
     let size: CGFloat
     var mode: SpriteRenderMode = .color
     var flipped = false
+    /// 값이 있으면 그 초만큼 거꾸로 세는 타이머 (한 번만 재생되는 이펙트용)
+    var countdown: TimeInterval? = nil
+
+    private var range: ClosedRange<Date> {
+        start...start.addingTimeInterval(countdown ?? 60 * 60 * 24)
+    }
 
     var body: some View {
         ZStack(alignment: .trailing) {
@@ -55,14 +61,40 @@ struct SpriteTimerView: View {
     }
 
     private func digit(font: String, color: Color) -> some View {
-        Text(timerInterval: start...start.addingTimeInterval(60 * 60 * 24),
-             countsDown: false, showsHours: false)
+        Text(timerInterval: range, countsDown: countdown != nil, showsHours: false)
             .font(.custom(font, fixedSize: size))
             .foregroundStyle(color)
             .multilineTextAlignment(.trailing)
             .lineLimit(1)
             .fixedSize()
             .frame(width: size, height: size, alignment: .trailing)
+    }
+}
+
+/// 몬스터 + 타격 이펙트 + 스킬 폭발. 처치 시각이 지나면(갱신 전) 연기와 동전.
+struct MonsterStack: View {
+    let state: BattleAttributes.ContentState
+    var isStale = false
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            if isStale {
+                PixelImage(name: "fx_poof").frame(width: size, height: size)
+            } else {
+                SpriteTimerView(anim: state.monster.anim, start: state.animStart,
+                                size: size, mode: state.renderMode)
+                if state.renderMode != .still {
+                    SpriteTimerView(anim: SpriteCatalog.fxHit, start: state.animStart,
+                                    size: size, mode: state.renderMode)
+                    if let at = state.skillAt {
+                        SpriteTimerView(anim: SpriteCatalog.fxSkill, start: at,
+                                        size: size, mode: state.renderMode, countdown: 3)
+                    }
+                }
+            }
+        }
+        .frame(width: size, height: size)
     }
 }
 
@@ -92,8 +124,7 @@ struct BattleSceneView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                SpriteTimerView(anim: state.monster.anim, start: state.animStart,
-                                size: spriteSize, mode: state.renderMode)
+                MonsterStack(state: state, isStale: isStale, size: spriteSize)
             }
             HStack(spacing: 8) {
                 Button(intent: SkillIntent()) {

@@ -70,6 +70,14 @@ struct HeroStats: Codable, Hashable {
     /// 글꼴 애니메이션이 2초 주기(짝수 초 = 베기)라서 공격 간격도 2초에 맞춤
     static let attackInterval: TimeInterval = 2
     static let skillMultiplier = 5
+    /// 5번째 공격마다 강타 (= 10초마다, 타이머 숫자 0 에 강타 이펙트가 나오도록)
+    static let critEvery = 5
+    static let critMultiplier = 3
+
+    /// k번째 공격(1부터)의 피해
+    static func damage(hit k: Int, attack: Int) -> Int {
+        k % critEvery == 0 ? attack * critMultiplier : attack
+    }
 }
 
 // MARK: - 전투 구간
@@ -108,38 +116,44 @@ enum BattleEngine {
     static func status(_ s: BattleSegment, at now: Date) -> BattleStatus {
         let interval = HeroStats.attackInterval
         let atk = max(1, s.attack)
-        var t = max(0, now.timeIntervalSince(s.start))
-        var fightStart = s.start
+        let elapsed = max(0, now.timeIntervalSince(s.start))
+        let landed = min(Int(elapsed / interval), 500_000)   // 지금까지 들어간 공격 수
         var idx = s.monsterIndex
         var hp = s.monsterHP
         var kills = s.kills
         var gold = s.gold
+        var k = 0
 
-        for _ in 0..<200_000 {
-            let hits = (hp + atk - 1) / atk
-            let duration = Double(hits) * interval
-            if t >= duration {
-                t -= duration
-                fightStart += duration
+        while true {
+            while hp > 0 && k < landed {
+                k += 1
+                hp -= HeroStats.damage(hit: k, attack: atk)
+            }
+            if hp <= 0 {
                 kills += 1
                 gold += MonsterTable.gold(at: idx)
                 idx += 1
                 hp = MonsterTable.maxHP(at: idx)
-            } else {
-                let death = fightStart.addingTimeInterval(duration)
-                let done = Int(t / interval)
-                hp -= done * atk
-                let maxHP = MonsterTable.maxHP(at: idx)
-                let full = Double((maxHP + atk - 1) / atk) * interval
-                return BattleStatus(monsterIndex: idx, kind: MonsterTable.kind(at: idx),
-                                    hp: hp, maxHP: maxHP, kills: kills, gold: gold,
-                                    hpBarStart: death.addingTimeInterval(-full), deathDate: death)
+                continue
             }
+            break
         }
-        // 여기까지 올 일은 거의 없음
+
+        // 지금 몬스터가 쓰러질 공격 번호 예측
+        var j = k
+        var left = hp
+        while left > 0 {
+            j += 1
+            left -= HeroStats.damage(hit: j, attack: atk)
+        }
+        let death = s.start.addingTimeInterval(Double(j) * interval)
         let maxHP = MonsterTable.maxHP(at: idx)
-        return BattleStatus(monsterIndex: idx, kind: MonsterTable.kind(at: idx), hp: hp, maxHP: maxHP,
-                            kills: kills, gold: gold, hpBarStart: now, deathDate: now.addingTimeInterval(interval))
+        // 체력바: 남은 비율 = 남은 체력 / 최대 체력 이 되도록 가상 시작 시각을 잡음
+        let remain = max(0.5, death.timeIntervalSince(now))
+        let barStart = death.addingTimeInterval(-remain * Double(maxHP) / Double(max(1, hp)))
+        return BattleStatus(monsterIndex: idx, kind: MonsterTable.kind(at: idx),
+                            hp: hp, maxHP: maxHP, kills: kills, gold: gold,
+                            hpBarStart: barStart, deathDate: death)
     }
 
     /// 지금 시점에서 새 구간을 연다 (공격력 변경 등)

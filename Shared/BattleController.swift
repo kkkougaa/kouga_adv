@@ -24,7 +24,8 @@ final class BattleController: ObservableObject {
 
     func contentState(at now: Date = .now) -> BattleAttributes.ContentState? {
         guard let seg = state.segment else { return nil }
-        return .init(status: BattleEngine.status(seg, at: now), segment: seg, mode: state.renderMode)
+        return .init(status: BattleEngine.status(seg, at: now), segment: seg, mode: state.renderMode,
+                     skillAt: state.lastSkillAt)
     }
 
     // MARK: 행동
@@ -73,7 +74,9 @@ final class BattleController: ObservableObject {
     func useSkill() async {
         reload()
         guard let seg = state.segment else { return }
-        state.segment = BattleEngine.useSkill(seg, at: .now)
+        let now = Date.now
+        state.segment = BattleEngine.useSkill(seg, at: now)
+        state.lastSkillAt = now
         save()
         await pushUpdate(force: true)
     }

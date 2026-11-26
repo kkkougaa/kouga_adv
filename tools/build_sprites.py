@@ -29,13 +29,16 @@ ROOT = Path(__file__).resolve().parent.parent
 SPRITES = ROOT / "sprites"
 OUT = ROOT / "Generated"
 PIXEL_UNITS = 100          # 도트 한 칸 = 글꼴 단위 100
-SBIX_SCALE = 8             # 컬러 글꼴에 넣는 그림 확대 배율 (흐려짐 방지)
+# 컬러 글꼴에 넣는 그림 확대 배율들. 화면 크기와 딱 맞는 배율이 있으면 흐려지지 않음
+# (32칸 그림을 32pt/64pt 로 쓸 때 아이폰 2x/3x 화면 = 64,96,128,192 픽셀)
+SBIX_SCALES = (2, 3, 4, 6, 8)
 
 
 # ---------------------------------------------------------------- 읽기
 def load_palette() -> dict[str, tuple[int, int, int]]:
     pal = {}
-    for line in (SPRITES / "palette.txt").read_text(encoding="utf-8").splitlines():
+    text = "\n".join(p.read_text(encoding="utf-8") for p in sorted(SPRITES.glob("palette*.txt")))
+    for line in text.splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
@@ -120,6 +123,8 @@ def parse_sprite(path: Path, palette) -> Sprite:
             i = j
         elif line.startswith("@digits"):
             _, aname, *fr = line.split()
+            if "-" in fr:  # '-' = 빈 프레임
+                sp.frames.setdefault("-", ["." * sp.size] * sp.size)
             for f in fr:
                 if f not in sp.frames:
                     errors.append(f"{path.name} @digits {aname}: 없는 프레임 '{f}'")
@@ -210,15 +215,18 @@ def build_color_font(ps_name, sp: Sprite, anim, palette, path):
     fb.setupGlyf({g: empty_glyph() for g in GLYPHS})
     sbix = newTable("sbix")
     sbix.version, sbix.flags = 1, 1
-    ppem = sp.size * SBIX_SCALE
-    strike = Strike(ppem=ppem, resolution=72)
-    for d in range(10):
-        name = f"d{d}"
-        img = render(sp.frames[anim[d]], palette, SBIX_SCALE)
-        strike.glyphs[name] = SbixGlyph(glyphName=name, graphicType="png ",
-                                        originOffsetX=0, originOffsetY=0,
-                                        imageData=png_bytes(img))
-    sbix.strikes[ppem] = strike
+    for scale in SBIX_SCALES:
+        ppem = sp.size * scale
+        strike = Strike(ppem=ppem, resolution=72)
+        for d in range(10):
+            name = f"d{d}"
+            if all(set(r) == {"."} for r in sp.frames[anim[d]]):
+                continue  # 빈 프레임은 그림 없음
+            img = render(sp.frames[anim[d]], palette, scale)
+            strike.glyphs[name] = SbixGlyph(glyphName=name, graphicType="png ",
+                                            originOffsetX=0, originOffsetY=0,
+                                            imageData=png_bytes(img))
+        sbix.strikes[ppem] = strike
     fb.font["sbix"] = sbix
     fb.save(str(path))
 
@@ -235,7 +243,7 @@ def lower_camel(s):
 
 def main():
     palette = load_palette()
-    sprites = [parse_sprite(p, palette) for p in sorted(SPRITES.glob("*.txt")) if p.stem != "palette"]
+    sprites = [parse_sprite(p, palette) for p in sorted(SPRITES.glob("*.txt")) if not p.stem.startswith("palette")]
 
     for sub in ("Sprites", "Fonts", "Swift"):
         d = OUT / sub
@@ -247,6 +255,8 @@ def main():
     swift_anims = []
     for sp in sprites:
         for fname, grid in sp.frames.items():
+            if fname == "-":
+                continue
             render(grid, palette).save(OUT / "Sprites" / f"{sp.name}_{fname}.png")
         for aname, anim in sp.anims.items():
             base = f"PX{camel(sp.name)}{camel(aname)}"
@@ -298,7 +308,7 @@ def main():
     sheet = Image.new("RGBA", (width, rows * cell + pad), (27, 31, 59, 255))
     y = pad
     for sp in sprites:
-        for x, (fname, grid) in enumerate(sp.frames.items()):
+        for x, (fname, grid) in enumerate((k, v) for k, v in sp.frames.items() if k != "-"):
             sheet.alpha_composite(render(grid, palette, scale * 20 // sp.size), (pad + x * cell, y))
         y += cell
         anim = sp.anims.get("battle") or next(iter(sp.anims.values()))

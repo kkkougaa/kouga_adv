@@ -1,0 +1,11 @@
+# 이펙트 전용 색 — tools/draw_effects.py
+[ ffffff
+] fff6b0
+{ ffd23f
+} ff8a2a
+| e8432e
+/ 7af0e4
+; 2ec4b6
+, c9c3d6
+` 8a829e
+' b8860b
