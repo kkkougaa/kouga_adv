@@ -1,25 +1,47 @@
-# 팔레트: 글자 한 개 = 색 한 개
-# 형식: <글자> <RRGGBB> <메모>
-# '.' 는 투명 (따로 적지 않아도 됨)
-o 14121c 외곽선
-K 0b0b10 눈동자
-W f4f4f8 흰색
-w b8bcc8 회색
-T 2ec4b6 청록
-t 168a82 진한청록
-L 9af5e8 밝은청록
-R d6304a 빨강
-r 9a1a30 진한빨강
-p ff8a96 분홍하이라이트
-s ffe2cc 피부
-S f0b898 피부그림자
-n 6b3a24 갈색
-N 3e2016 진갈색
-G 5fa840 초록
-g 3a7028 진초록
-B 4a72d8 파랑
-b 2a4498 진파랑
-l 8ab0ff 밝은파랑
-Y f2d040 노랑
-y c08a20 진노랑
-h fff2a8 밝은노랑
+# 팔레트: tools/import_sheet.py 가 sprites/source/sheet.png 에서 뽑음
+# 형식: <글자> <RRGGBB>
+# '.' 는 투명
+A fdfefd
+B fcdac9
+C bae2fd
+D ead9b6
+E d3d3d3
+F fae48f
+G a0e2dc
+H fbbca4
+I fa8e8f
+J 7bc1d8
+L f1d250
+M 64c8e4
+N f8d338
+P dfa637
+Q 43a6cc
+R 5ba5a8
+S 4ab3a9
+T 9d8b6d
+U 8954a5
+V b6655a
+W 4173b0
+X ba8d18
+Y df3e3f
+Z 7a716c
+a 60a34b
+b b43643
+c c72b31
+d 466176
+e 7c5b41
+f 1e7682
+g 477249
+h 685a39
+i 284c83
+j 5e4250
+k 532d6a
+l 33773e
+m 84213a
+n 223a6b
+p 0e5362
+q 871e1c
+r 351346
+s 0b1b51
+t 431414
+u 030202

@@ -3,14 +3,21 @@ import Foundation
 // MARK: - 몬스터
 
 enum MonsterKind: String, Codable, Hashable, CaseIterable {
-    case slime, goblin, bat, dragon
+    case slime, goblin, bat, dragon, skull, skeleton, mushroom, eyeball, mummy, cactus, robot
 
     var displayName: String {
         switch self {
         case .slime: "슬라임"
         case .goblin: "고블린"
         case .bat: "박쥐"
-        case .dragon: "아기 드래곤"
+        case .dragon: "드래곤"
+        case .skull: "해골"
+        case .skeleton: "스켈레톤"
+        case .mushroom: "버섯"
+        case .eyeball: "눈알"
+        case .mummy: "미라"
+        case .cactus: "선인장"
+        case .robot: "로봇"
         }
     }
 
@@ -20,15 +27,25 @@ enum MonsterKind: String, Codable, Hashable, CaseIterable {
         case .goblin: SpriteCatalog.goblinBattle
         case .bat: SpriteCatalog.batBattle
         case .dragon: SpriteCatalog.dragonBattle
+        case .skull: SpriteCatalog.skullBattle
+        case .skeleton: SpriteCatalog.skeletonBattle
+        case .mushroom: SpriteCatalog.mushroomBattle
+        case .eyeball: SpriteCatalog.eyeballBattle
+        case .mummy: SpriteCatalog.mummyBattle
+        case .cactus: SpriteCatalog.cactusBattle
+        case .robot: SpriteCatalog.robotBattle
         }
     }
 }
 
 enum MonsterTable {
-    /// 10마리마다 보스
+    static let regular: [MonsterKind] = [.slime, .goblin, .bat, .skull, .skeleton,
+                                         .mushroom, .eyeball, .mummy, .cactus, .robot]
+
+    /// 10마리마다 보스(드래곤), 나머지는 순서대로 돌아가며 등장
     static func kind(at index: Int) -> MonsterKind {
         if (index + 1) % 10 == 0 { return .dragon }
-        return [.slime, .goblin, .bat][index % 3]
+        return regular[(index - index / 10) % regular.count]
     }
 
     static func maxHP(at index: Int) -> Int {

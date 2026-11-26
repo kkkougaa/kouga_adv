@@ -14,5 +14,7 @@
 실행 결과물과 `latest` 릴리스에 올림 → 페더로 서명해서 설치.
 
 ## 도트 교체
-`sprites/*.txt` 만 고치면 됨. 프레임 지시어 설명은 `sprites/player.txt` 맨 위 주석 참고.
+원본 도트 시트는 `sprites/source/sheet.png` (도트 한 칸 = 7.5px, 4x3 칸).
+`python3 tools/import_sheet.py` 를 돌리면 시트에서 그대로 읽어 `sprites/*.txt` 와 팔레트를 다시 만듦.
+`sprites/*.txt` 를 직접 고쳐도 됨. 프레임 지시어 설명은 `sprites/player.txt` 맨 위 주석 참고.
 로컬 확인: `pip install -r tools/requirements.txt && python3 tools/build_sprites.py` → `Generated/preview.png`
