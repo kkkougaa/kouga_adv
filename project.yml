@@ -1,0 +1,51 @@
+name: PixelKnight
+options:
+  bundleIdPrefix: com.pixelknight
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    TARGETED_DEVICE_FAMILY: "1"
+    # 서명은 페더가 하니까 여기선 끔
+    CODE_SIGNING_ALLOWED: "NO"
+    CODE_SIGNING_REQUIRED: "NO"
+    CODE_SIGN_IDENTITY: ""
+    DEVELOPMENT_TEAM: ""
+    GENERATE_INFOPLIST_FILE: "NO"
+targets:
+  PixelKnight:
+    type: application
+    platform: iOS
+    sources:
+      - App
+      - Shared
+      - Generated/Swift
+      - Generated/Sprites
+      - Generated/Fonts
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.pixelknight.app
+        INFOPLIST_FILE: Generated/App-Info.plist
+    dependencies:
+      - target: PixelKnightWidget
+        embed: true
+    scheme: {}
+  PixelKnightWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Widget
+      - Shared
+      - Generated/Swift
+      - Generated/Sprites
+      - Generated/Fonts
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.pixelknight.app.widget
+        INFOPLIST_FILE: Generated/Widget-Info.plist
+        APPLICATION_EXTENSION_API_ONLY: "YES"
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) WIDGET_EXTENSION"

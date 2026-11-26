@@ -1,0 +1,75 @@
+name: 빌드 (서명 안 된 설치 파일)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 도트 → 그림/글꼴 변환
+        run: |
+          pip install -r tools/requirements.txt
+          python tools/build_sprites.py
+
+      - name: 엑스코드 프로젝트 생성
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: 빌드
+        run: |
+          xcodebuild -version
+          set +e
+          xcodebuild \
+            -project PixelKnight.xcodeproj \
+            -scheme PixelKnight \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build > build.log 2>&1
+          code=$?
+          grep -E "error:|BUILD (SUCCEEDED|FAILED)" build.log | head -50
+          exit $code
+
+      - name: 설치 파일 묶기
+        run: |
+          APP=build/Build/Products/Release-iphoneos/PixelKnight.app
+          test -d "$APP/PlugIns/PixelKnightWidget.appex"
+          mkdir -p Payload
+          cp -R "$APP" Payload/
+          zip -qry PixelKnight.ipa Payload
+          ls -lh PixelKnight.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PixelKnight-ipa
+          path: PixelKnight.ipa
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-log
+          path: build.log
+
+      # 아이폰에서 바로 받을 수 있게 "latest" 릴리스에 덮어쓰기
+      - name: 릴리스에 올리기
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: 최신 빌드
+          prerelease: true
+          files: PixelKnight.ipa
