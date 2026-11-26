@@ -40,6 +40,8 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            MARKETING_VERSION="0.1.${{ github.run_number }}" \
+            CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
             build > build.log 2>&1
           code=$?
           grep -E "error:|BUILD (SUCCEEDED|FAILED)" build.log | head -50
@@ -53,6 +55,11 @@ jobs:
           cp -R "$APP" Payload/
           zip -qry PixelKnight.ipa Payload
           ls -lh PixelKnight.ipa
+
+      - name: 사이드스토어 소스 만들기
+        run: |
+          python tools/make_source.py PixelKnight.ipa "0.1.${{ github.run_number }}" "${{ github.run_number }}" source.json
+          cp Generated/icon.png icon.png
 
       - uses: actions/upload-artifact@v4
         with:
@@ -72,4 +79,7 @@ jobs:
           tag_name: latest
           name: 최신 빌드
           prerelease: true
-          files: PixelKnight.ipa
+          files: |
+            PixelKnight.ipa
+            source.json
+            icon.png

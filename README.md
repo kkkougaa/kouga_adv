@@ -13,6 +13,11 @@
 `main` 에 올리면 깃허브 액션이 서명 안 된 `PixelKnight.ipa` 를 만들어서
 실행 결과물과 `latest` 릴리스에 올림 → 페더로 서명해서 설치.
 
+## 사이드스토어 소스
+사이드스토어(또는 페더)에 이 주소를 소스로 추가:
+`https://github.com/kkkougaa/kouga_adv/releases/download/latest/source.json`
+빌드할 때마다 버전이 `0.1.<빌드번호>` 로 올라가서 업데이트로 잡힘.
+
 ## 도트 교체
 원본 도트 시트는 `sprites/source/sheet.png` (도트 한 칸 = 7.5px, 4x3 칸).
 `python3 tools/import_sheet.py` 를 돌리면 시트에서 그대로 읽어 `sprites/*.txt` 와 팔레트를 다시 만듦.

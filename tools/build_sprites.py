@@ -316,6 +316,22 @@ def main():
             sheet.alpha_composite(render(sp.frames[anim[d]], palette, scale * 20 // sp.size), (pad + d * cell, y))
         y += cell
     sheet.save(OUT / "preview.png")
+
+    # 앱 아이콘: 주인공 도트(대기 프레임) 그대로, 남색 배경 위에 정수배 확대
+    player = next(sp for sp in sprites if sp.name == "player")
+    icon = Image.new("RGBA", (1024, 1024), (27, 31, 59, 255))
+    scale = 1024 // player.size - 4
+    art = render(player.frames["idle"], palette, scale)
+    icon.alpha_composite(art, ((1024 - art.width) // 2, (1024 - art.height) // 2))
+    icon = icon.convert("RGB")  # 아이콘은 투명 없이
+    iconset = OUT / "Assets.xcassets" / "AppIcon.appiconset"
+    iconset.mkdir(parents=True, exist_ok=True)
+    icon.save(iconset / "icon.png")
+    (OUT / "Assets.xcassets" / "Contents.json").write_text('{"info":{"author":"xcode","version":1}}\n')
+    (iconset / "Contents.json").write_text(
+        '{"images":[{"filename":"icon.png","idiom":"universal","platform":"ios","size":"1024x1024"}],'
+        '"info":{"author":"xcode","version":1}}\n')
+    icon.resize((512, 512), Image.NEAREST).save(OUT / "icon.png")
     print(f"스프라이트 {len(sprites)}개, 글꼴 {len(font_files)}개 생성 완료")
 
 

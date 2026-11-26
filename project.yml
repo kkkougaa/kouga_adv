@@ -26,9 +26,11 @@ targets:
       - Generated/Swift
       - Generated/Sprites
       - Generated/Fonts
+      - Generated/Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.pixelknight.app
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_FILE: Generated/App-Info.plist
     dependencies:
       - target: PixelKnightWidget
